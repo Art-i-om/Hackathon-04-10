@@ -1,5 +1,4 @@
-from fastapi import FastAPI
-from json import dumps
+from fastapi import FastAPI, HTTPException
 from csv import DictReader
 import os
 
@@ -7,11 +6,15 @@ app = FastAPI()
 
 
 def read_csv_file_by_id(sharkId: int):
+    file_path = f"sharksData/{sharkId}.csv"
     res = []
-    with open(f"sharksData/{sharkId}.csv", "r") as f:
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail=f"File for shark {sharkId} not found")
+
+    with open(file_path, "r") as f:
         data = DictReader(f)
         for row in data:
-            del row["lc"]
+            row.pop("lc", None)
             res.append(row)
 
     # res = dumps(res)
@@ -29,17 +32,16 @@ def read_all_data():
 
 
 @app.get("/data/all")
-def read_root():
-    return {"message": "Hello, FastAPI!"}
+def get_all_data():
+    data = read_all_data()
+    return data
 
 
 @app.get("/data/{sharkId}")
-def read_item(name: str):
-    return {"message": f"Hello, {name}!"}
+def get_shark_by_id(sharkId: int):
+    data = read_csv_file_by_id(sharkId)
+    return data
 
 
-if __name__ == "__main__":
-    read_csv_file_by_id(1)
-    data = dumps(read_all_data())
-    with open(f"data.json", "w", encoding="utf-8") as out:
-        out.write(data)
+# if __name__ == "__main__":
+#     read_csv_file_by_id(1)
