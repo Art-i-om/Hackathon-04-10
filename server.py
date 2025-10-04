@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from json import dumps
 from csv import DictReader
+import os
 
 app = FastAPI()
 
@@ -13,10 +14,17 @@ def read_csv_file_by_id(sharkId: int):
             del row["lc"]
             res.append(row)
 
-    res = dumps(res)
+    # res = dumps(res)
     # with open(f"{sharkId}.json", "w", encoding="utf-8") as out:
     #     out.write(res)
 
+    return res
+
+
+def read_all_data():
+    res = []
+    for sharkId in sorted([int(fileName.split(".")[0]) for fileName in os.listdir("sharksData")]):
+        res.append(read_csv_file_by_id(sharkId))
     return res
 
 
@@ -32,3 +40,6 @@ def read_item(name: str):
 
 if __name__ == "__main__":
     read_csv_file_by_id(1)
+    data = dumps(read_all_data())
+    with open(f"data.json", "w", encoding="utf-8") as out:
+        out.write(data)
